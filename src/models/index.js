@@ -10,4 +10,4 @@ module.exports = {
   TestRun,
   TestSequence,
   TestResult,
-}; 
+};

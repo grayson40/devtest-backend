@@ -23,12 +23,12 @@ exports.createTest = async (req, res, next) => {
     }
 
     // Transform steps to match expected format
-    const formattedSteps = parsedTest.steps.map(step => ({
+    const formattedSteps = parsedTest.steps.map((step) => ({
       number: step.number,
       action: step.action,
       selector: step.selector || '',
       value: step.value || '',
-      description: step.description
+      description: step.description,
     }));
 
     // Create test case
@@ -36,7 +36,7 @@ exports.createTest = async (req, res, next) => {
       title: parsedTest.title,
       description: parsedTest.description || 'Generated from Scribe recording',
       steps: formattedSteps,
-      status: 'draft'
+      status: 'draft',
     });
 
     // Generate Playwright test synchronously to ensure it's created
@@ -44,18 +44,18 @@ exports.createTest = async (req, res, next) => {
       const testPath = await playwrightGenerator.generateTest(testCase);
       logger.info('Successfully generated Playwright test', {
         testId: testCase._id,
-        path: testPath
+        path: testPath,
       });
     } catch (genError) {
       logger.error('Failed to generate Playwright test', {
         testId: testCase._id,
-        error: genError.message
+        error: genError.message,
       });
     }
 
     res.status(201).json({
       status: 'success',
-      data: testCase
+      data: testCase,
     });
   } catch (error) {
     if (error.name === 'ValidationError') {
@@ -71,7 +71,7 @@ exports.createTest = async (req, res, next) => {
 exports.getAllTests = async (req, res, next) => {
   try {
     const tests = await TestCase.find().sort('-createdAt');
-    
+
     res.status(200).json({
       status: 'success',
       results: tests.length,
@@ -110,14 +110,10 @@ exports.getTest = async (req, res, next) => {
  */
 exports.updateTest = async (req, res, next) => {
   try {
-    const test = await TestCase.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      {
-        new: true,
-        runValidators: true,
-      }
-    );
+    const test = await TestCase.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+      runValidators: true,
+    });
 
     if (!test) {
       throw new APIError('Test case not found', 404);
@@ -161,4 +157,4 @@ exports.deleteTest = async (req, res, next) => {
     }
     next(error);
   }
-}; 
+};

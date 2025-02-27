@@ -7,7 +7,7 @@ const { APIError } = require('../errorHandler');
 jest.mock('multer', () => {
   const mockMiddleware = jest.fn((req, res, next) => next());
   return jest.fn(() => ({
-    single: jest.fn(() => mockMiddleware)
+    single: jest.fn(() => mockMiddleware),
   }));
 });
 
@@ -39,7 +39,7 @@ describe('Upload Middleware', () => {
     const multerInstance = multer();
     const sizeError = new Error('File too large');
     sizeError.code = 'LIMIT_FILE_SIZE';
-    
+
     multerInstance.single('file').mockImplementationOnce((req, res, next) => {
       next(sizeError);
     });
@@ -50,15 +50,15 @@ describe('Upload Middleware', () => {
     expect(nextFunction).toHaveBeenCalledWith(
       expect.objectContaining({
         statusCode: 400,
-        message: 'File size limit exceeded'
-      })
+        message: 'File size limit exceeded',
+      }),
     );
   });
 
   it('should handle other multer errors', () => {
     const multerInstance = multer();
     const multerError = new Error('Multer error');
-    
+
     multerInstance.single('file').mockImplementationOnce((req, res, next) => {
       next(multerError);
     });
@@ -69,15 +69,15 @@ describe('Upload Middleware', () => {
     expect(nextFunction).toHaveBeenCalledWith(
       expect.objectContaining({
         statusCode: 400,
-        message: 'Error uploading file'
-      })
+        message: 'Error uploading file',
+      }),
     );
   });
 
   it('should handle non-multer errors', () => {
     const multerInstance = multer();
     const genericError = new Error('Generic error');
-    
+
     multerInstance.single('file').mockImplementationOnce((req, res, next) => {
       next(genericError);
     });
@@ -87,4 +87,4 @@ describe('Upload Middleware', () => {
 
     expect(nextFunction).toHaveBeenCalledWith(genericError);
   });
-}); 
+});

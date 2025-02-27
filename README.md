@@ -5,6 +5,7 @@ A Node.js service that transforms Scribe documentation into executable Playwrigh
 ## Overview
 
 DevTest automatically converts visual documentation from Scribe into structured, executable test cases. It provides APIs for:
+
 - Converting Scribe HTML exports to test cases
 - Managing test sequences
 - Executing tests against configurable environments
@@ -20,17 +21,20 @@ DevTest automatically converts visual documentation from Scribe into structured,
 ## Quick Start
 
 1. Install dependencies:
+
 ```bash
 npm install
 ```
 
 2. Set up environment variables:
+
 ```bash
 cp .env.example .env
 # Edit .env with your MongoDB URI and other settings
 ```
 
 3. Start the server:
+
 ```bash
 # Development
 npm run dev
@@ -42,16 +46,19 @@ npm start
 ## API Routes
 
 ### Test Management
+
 - `POST /api/tests` - Create test from Scribe HTML
 - `GET /api/tests` - List all tests
 - `GET /api/tests/:id` - Get test details
 
 ### Test Sequences
+
 - `POST /api/sequences` - Create test sequence
 - `GET /api/sequences` - List sequences
 - `POST /api/run/sequence/:id` - Run sequence
 
 ### Environments
+
 - `POST /api/environments` - Create environment
 - `GET /api/environments` - List environments
 

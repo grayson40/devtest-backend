@@ -7,7 +7,7 @@ const { APIError } = require('../middleware/errorHandler');
 exports.createResult = async (req, res, next) => {
   try {
     const result = await TestResult.create(req.body);
-    
+
     res.status(201).json({
       status: 'success',
       data: result,
@@ -38,10 +38,7 @@ exports.getAllResults = async (req, res, next) => {
       .limit(limit)
       .populate(['testCase', 'environment']);
 
-    const [results, total] = await Promise.all([
-      query,
-      TestResult.countDocuments(filter),
-    ]);
+    const [results, total] = await Promise.all([query, TestResult.countDocuments(filter)]);
 
     res.status(200).json({
       status: 'success',
@@ -63,8 +60,7 @@ exports.getAllResults = async (req, res, next) => {
  */
 exports.getResult = async (req, res, next) => {
   try {
-    const result = await TestResult.findById(req.params.id)
-      .populate(['testCase', 'environment']);
+    const result = await TestResult.findById(req.params.id).populate(['testCase', 'environment']);
 
     if (!result) {
       return next(new APIError('Test result not found', 404));
@@ -99,4 +95,4 @@ exports.deleteResult = async (req, res, next) => {
   } catch (error) {
     next(new APIError(error.message, 400));
   }
-}; 
+};

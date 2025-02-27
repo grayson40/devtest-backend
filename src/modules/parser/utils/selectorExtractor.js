@@ -63,7 +63,10 @@ function generateClickSelector(text) {
   }
 
   // Try to identify if it's a button
-  if (lowerText.includes('button') || text.match(/confirm|submit|save|cancel|ok|yes|no|log\s*in/i)) {
+  if (
+    lowerText.includes('button') ||
+    text.match(/confirm|submit|save|cancel|ok|yes|no|log\s*in/i)
+  ) {
     return `button:has-text("${text}")`;
   }
 
@@ -151,4 +154,4 @@ module.exports = {
   SelectorTypes,
   generateSelector,
   optimizeSelector,
-}; 
+};

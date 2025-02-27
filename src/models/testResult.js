@@ -29,19 +29,23 @@ const testResultSchema = new mongoose.Schema(
       message: String,
       stack: String,
     },
-    screenshots: [{
-      step: Number,
-      path: String,
-      timestamp: Date,
-    }],
-    logs: [{
-      level: {
-        type: String,
-        enum: ['info', 'warn', 'error'],
+    screenshots: [
+      {
+        step: Number,
+        path: String,
+        timestamp: Date,
       },
-      message: String,
-      timestamp: Date,
-    }],
+    ],
+    logs: [
+      {
+        level: {
+          type: String,
+          enum: ['info', 'warn', 'error'],
+        },
+        message: String,
+        timestamp: Date,
+      },
+    ],
     metadata: {
       browser: {
         type: String,
@@ -59,7 +63,7 @@ const testResultSchema = new mongoose.Schema(
     timestamps: true,
     toJSON: { virtuals: true },
     toObject: { virtuals: true },
-  }
+  },
 );
 
 // Indexes for faster queries
@@ -71,4 +75,4 @@ testResultSchema.index({ createdAt: 1 });
 
 const TestResult = mongoose.model('TestResult', testResultSchema);
 
-module.exports = TestResult; 
+module.exports = TestResult;

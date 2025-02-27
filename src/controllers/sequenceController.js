@@ -10,9 +10,9 @@ exports.createSequence = async (req, res, next) => {
 
     // Validate test IDs exist
     if (tests && tests.length > 0) {
-      const testIds = tests.map(test => test.testId);
+      const testIds = tests.map((test) => test.testId);
       const existingTests = await TestCase.find({ _id: { $in: testIds } });
-      
+
       if (existingTests.length !== testIds.length) {
         throw new APIError('One or more test cases do not exist', 400);
       }
@@ -46,7 +46,7 @@ exports.getAllSequences = async (req, res, next) => {
     const sequences = await TestSequence.find()
       .populate('tests.testId', 'title description status')
       .sort('-createdAt');
-    
+
     res.status(200).json({
       status: 'success',
       results: sequences.length,
@@ -62,8 +62,10 @@ exports.getAllSequences = async (req, res, next) => {
  */
 exports.getSequence = async (req, res, next) => {
   try {
-    const sequence = await TestSequence.findById(req.params.id)
-      .populate('tests.testId', 'title description status');
+    const sequence = await TestSequence.findById(req.params.id).populate(
+      'tests.testId',
+      'title description status',
+    );
 
     if (!sequence) {
       throw new APIError('Test sequence not found', 404);
@@ -88,22 +90,18 @@ exports.updateSequence = async (req, res, next) => {
   try {
     // If updating tests, validate they exist
     if (req.body.tests && req.body.tests.length > 0) {
-      const testIds = req.body.tests.map(test => test.testId);
+      const testIds = req.body.tests.map((test) => test.testId);
       const existingTests = await TestCase.find({ _id: { $in: testIds } });
-      
+
       if (existingTests.length !== testIds.length) {
         throw new APIError('One or more test cases do not exist', 400);
       }
     }
 
-    const sequence = await TestSequence.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      {
-        new: true,
-        runValidators: true,
-      }
-    ).populate('tests.testId', 'title description status');
+    const sequence = await TestSequence.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+      runValidators: true,
+    }).populate('tests.testId', 'title description status');
 
     if (!sequence) {
       throw new APIError('Test sequence not found', 404);
@@ -130,7 +128,7 @@ exports.updateSequence = async (req, res, next) => {
 exports.deleteSequence = async (req, res, next) => {
   try {
     const sequence = await TestSequence.findByIdAndDelete(req.params.id);
-    
+
     if (!sequence) {
       throw new APIError('Test sequence not found', 404);
     }
@@ -145,4 +143,4 @@ exports.deleteSequence = async (req, res, next) => {
     }
     next(error);
   }
-}; 
+};

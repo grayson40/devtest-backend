@@ -24,7 +24,7 @@ exports.uploadScribeHtml = async (req, res, next) => {
 
     res.status(200).json({
       status: 'success',
-      data: parsedData
+      data: parsedData,
     });
   } catch (error) {
     // Clean up file if it exists and there was an error
@@ -33,4 +33,4 @@ exports.uploadScribeHtml = async (req, res, next) => {
     }
     next(error);
   }
-}; 
+};

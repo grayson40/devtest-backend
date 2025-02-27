@@ -65,7 +65,7 @@ router.post(
     body('tests.*.order').optional().isInt({ min: 0 }),
     validate,
   ],
-  sequenceController.createSequence
+  sequenceController.createSequence,
 );
 
 /**
@@ -130,7 +130,7 @@ router.patch(
     body('tests.*.order').optional().isInt({ min: 0 }),
     validate,
   ],
-  sequenceController.updateSequence
+  sequenceController.updateSequence,
 );
 
 /**
@@ -151,4 +151,4 @@ router.patch(
  */
 router.delete('/:id', sequenceController.deleteSequence);
 
-module.exports = router; 
+module.exports = router;

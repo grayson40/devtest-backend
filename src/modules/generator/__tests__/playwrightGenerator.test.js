@@ -61,25 +61,26 @@ describe('PlaywrightGenerator', () => {
       });
 
       // Verify file exists
-      const fileExists = await fs.access(filePath)
+      const fileExists = await fs
+        .access(filePath)
         .then(() => true)
         .catch(() => false);
       expect(fileExists).toBe(true);
 
       // Read and verify file contents
       const content = await fs.readFile(filePath, 'utf8');
-      
+
       // Check basic structure
       expect(content).toContain("import { test, expect } from '@playwright/test'");
       expect(content).toContain("test('Login Test'");
-      
+
       // Check steps
       expect(content).toContain("await page.goto('https://example.com/login')");
       expect(content).toContain("await page.fill('input[name=\"username\"]', 'testuser')");
       expect(content).toContain("await page.fill('input[type=\"password\"]', 'password123')");
-      expect(content).toContain("await page.click('button[type=\"submit\"]')");
+      expect(content).toContain('await page.click(\'button[type="submit"]\')');
       expect(content).toContain("await expect(page.getByText('Dashboard')).toBeVisible()");
-      
+
       // Check comments
       expect(content).toContain('// Step 1: Navigate to login page');
       expect(content).toContain('// Step 2: Enter username');
@@ -91,10 +92,11 @@ describe('PlaywrightGenerator', () => {
       });
 
       const configPath = path.join(testOutputDir, '..', 'playwright.config.js');
-      const configExists = await fs.access(configPath)
+      const configExists = await fs
+        .access(configPath)
         .then(() => true)
         .catch(() => false);
-      
+
       expect(configExists).toBe(true);
 
       const configContent = await fs.readFile(configPath, 'utf8');
@@ -132,14 +134,15 @@ describe('PlaywrightGenerator', () => {
       });
 
       expect(filePaths).toHaveLength(2);
-      
+
       // Verify all files exist
       for (const filePath of filePaths) {
-        const fileExists = await fs.access(filePath)
+        const fileExists = await fs
+          .access(filePath)
           .then(() => true)
           .catch(() => false);
         expect(fileExists).toBe(true);
       }
     });
   });
-}); 
+});

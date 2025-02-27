@@ -32,10 +32,12 @@ const environmentSchema = new mongoose.Schema(
       enum: ['active', 'archived'],
       default: 'active',
     },
-    tags: [{
-      type: String,
-      trim: true,
-    }],
+    tags: [
+      {
+        type: String,
+        trim: true,
+      },
+    ],
     auth: {
       type: {
         type: String,
@@ -57,7 +59,7 @@ const environmentSchema = new mongoose.Schema(
     timestamps: true,
     toJSON: { virtuals: true },
     toObject: { virtuals: true },
-  }
+  },
 );
 
 // Indexes for faster queries
@@ -67,4 +69,4 @@ environmentSchema.index({ tags: 1 });
 
 const Environment = mongoose.model('Environment', environmentSchema);
 
-module.exports = Environment; 
+module.exports = Environment;

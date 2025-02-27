@@ -12,13 +12,15 @@ describe('Result Routes', () => {
     testCase = await TestCase.create({
       title: 'Test Case for Results',
       description: 'Test case for testing results',
-      steps: [{
-        number: 1,
-        description: 'Go to example.com',
-        action: 'goto',
-        value: 'https://example.com',
-        selector: null,
-      }],
+      steps: [
+        {
+          number: 1,
+          description: 'Go to example.com',
+          action: 'goto',
+          value: 'https://example.com',
+          selector: null,
+        },
+      ],
     });
 
     environment = await Environment.create({
@@ -52,9 +54,7 @@ describe('Result Routes', () => {
         },
       };
 
-      const response = await request(app)
-        .post('/api/results')
-        .send(resultData);
+      const response = await request(app).post('/api/results').send(resultData);
 
       expect(response.status).toBe(201);
       expect(response.body.status).toBe('success');
@@ -63,12 +63,10 @@ describe('Result Routes', () => {
     });
 
     it('should return 400 if required fields are missing', async () => {
-      const response = await request(app)
-        .post('/api/results')
-        .send({
-          testCase: testCase._id,
-          status: 'passed',
-        });
+      const response = await request(app).post('/api/results').send({
+        testCase: testCase._id,
+        status: 'passed',
+      });
 
       expect(response.status).toBe(400);
     });
@@ -109,8 +107,7 @@ describe('Result Routes', () => {
     });
 
     it('should return all results', async () => {
-      const response = await request(app)
-        .get('/api/results');
+      const response = await request(app).get('/api/results');
 
       expect(response.status).toBe(200);
       expect(response.body.status).toBe('success');
@@ -119,9 +116,7 @@ describe('Result Routes', () => {
     });
 
     it('should filter results by status', async () => {
-      const response = await request(app)
-        .get('/api/results')
-        .query({ status: 'passed' });
+      const response = await request(app).get('/api/results').query({ status: 'passed' });
 
       expect(response.status).toBe(200);
       expect(response.body.data).toHaveLength(1);
@@ -129,9 +124,7 @@ describe('Result Routes', () => {
     });
 
     it('should paginate results', async () => {
-      const response = await request(app)
-        .get('/api/results')
-        .query({ page: 1, limit: 1 });
+      const response = await request(app).get('/api/results').query({ page: 1, limit: 1 });
 
       expect(response.status).toBe(200);
       expect(response.body.data).toHaveLength(1);
@@ -154,8 +147,7 @@ describe('Result Routes', () => {
     });
 
     it('should return a result by ID', async () => {
-      const response = await request(app)
-        .get(`/api/results/${testResult._id}`);
+      const response = await request(app).get(`/api/results/${testResult._id}`);
 
       expect(response.status).toBe(200);
       expect(response.body.status).toBe('success');
@@ -163,8 +155,7 @@ describe('Result Routes', () => {
     });
 
     it('should return 404 for non-existent result', async () => {
-      const response = await request(app)
-        .get(`/api/results/${new mongoose.Types.ObjectId()}`);
+      const response = await request(app).get(`/api/results/${new mongoose.Types.ObjectId()}`);
 
       expect(response.status).toBe(404);
     });
@@ -184,8 +175,7 @@ describe('Result Routes', () => {
     });
 
     it('should delete a result', async () => {
-      const response = await request(app)
-        .delete(`/api/results/${testResult._id}`);
+      const response = await request(app).delete(`/api/results/${testResult._id}`);
 
       expect(response.status).toBe(204);
 
@@ -195,10 +185,9 @@ describe('Result Routes', () => {
     });
 
     it('should return 404 for non-existent result', async () => {
-      const response = await request(app)
-        .delete(`/api/results/${new mongoose.Types.ObjectId()}`);
+      const response = await request(app).delete(`/api/results/${new mongoose.Types.ObjectId()}`);
 
       expect(response.status).toBe(404);
     });
   });
-}); 
+});

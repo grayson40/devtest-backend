@@ -40,10 +40,13 @@ class ScribeParser {
 
     stepElements.forEach((stepEl, index) => {
       const step = this.parseStep(stepEl, index + 1, lastClickedSelector);
-      
+
       // Get screenshot from the next element
       const screenshotContainer = stepEl.nextElementSibling;
-      if (screenshotContainer && screenshotContainer.classList.contains('scribe-screenshot-container')) {
+      if (
+        screenshotContainer &&
+        screenshotContainer.classList.contains('scribe-screenshot-container')
+      ) {
         const screenshotEl = screenshotContainer.querySelector('.scribe-screenshot');
         if (screenshotEl) {
           step.screenshotUrl = screenshotEl.getAttribute('src');
@@ -51,9 +54,12 @@ class ScribeParser {
       }
 
       // Store the selector if this was a click on a field
-      if (step.action === 'click' && step.selector && 
-          (step.selector.toLowerCase().includes('field') || 
-           step.description.toLowerCase().includes('field'))) {
+      if (
+        step.action === 'click' &&
+        step.selector &&
+        (step.selector.toLowerCase().includes('field') ||
+          step.description.toLowerCase().includes('field'))
+      ) {
         lastClickedSelector = step.selector;
       }
 
@@ -77,18 +83,18 @@ class ScribeParser {
    */
   static parseStep(stepElement, stepNumber, lastClickedSelector) {
     const stepText = stepElement.querySelector('.scribe-step-text')?.textContent.trim() || '';
-    
+
     // Remove the step number prefix if present
     const cleanStepText = stepText.replace(/^\d+\.\s*/, '');
-    
+
     // Detect the action and generate appropriate selector
     const action = detectAction(cleanStepText);
-    
+
     // If this is a type action without a selector, use the last clicked selector
     if (action.type === 'fill' && !action.selector && lastClickedSelector) {
       action.selector = lastClickedSelector;
     }
-    
+
     // Optimize the selector based on the action type
     if (action.selector) {
       action.selector = optimizeSelector(action.selector, action.type);
@@ -136,4 +142,4 @@ class ScribeParser {
   }
 }
 
-module.exports = ScribeParser; 
+module.exports = ScribeParser;

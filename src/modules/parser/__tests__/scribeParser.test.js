@@ -6,7 +6,10 @@ describe('ScribeParser', () => {
   let exampleHtml;
 
   beforeAll(async () => {
-    exampleHtml = await fs.readFile(path.join(__dirname, '../../../../docs/example-scribe.html'), 'utf8');
+    exampleHtml = await fs.readFile(
+      path.join(__dirname, '../../../../docs/example-scribe.html'),
+      'utf8',
+    );
   });
 
   describe('parse', () => {
@@ -86,7 +89,7 @@ describe('ScribeParser', () => {
       });
 
       // Check screenshots
-      result.steps.forEach(step => {
+      result.steps.forEach((step) => {
         if (step.screenshotUrl) {
           expect(step.screenshotUrl).toMatch(/^https:\/\/.*\.jpeg/);
         }
@@ -113,4 +116,4 @@ describe('ScribeParser', () => {
       expect(validation.errors).toContain('Test case must have at least one step');
     });
   });
-}); 
+});

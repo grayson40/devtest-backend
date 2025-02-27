@@ -48,11 +48,9 @@ describe('Sequence Routes', () => {
     });
 
     it('should return 400 if name is missing', async () => {
-      const response = await request(app)
-        .post('/api/sequences')
-        .send({
-          description: 'Test sequence',
-        });
+      const response = await request(app).post('/api/sequences').send({
+        description: 'Test sequence',
+      });
 
       expect(response.status).toBe(400);
     });
@@ -96,8 +94,7 @@ describe('Sequence Routes', () => {
     });
 
     it('should return a sequence by ID', async () => {
-      const response = await request(app)
-        .get(`/api/sequences/${sequence._id}`);
+      const response = await request(app).get(`/api/sequences/${sequence._id}`);
 
       expect(response.status).toBe(200);
       expect(response.body.status).toBe('success');
@@ -105,8 +102,7 @@ describe('Sequence Routes', () => {
     });
 
     it('should return 404 for non-existent sequence', async () => {
-      const response = await request(app)
-        .get(`/api/sequences/${new mongoose.Types.ObjectId()}`);
+      const response = await request(app).get(`/api/sequences/${new mongoose.Types.ObjectId()}`);
 
       expect(response.status).toBe(404);
     });
@@ -123,12 +119,10 @@ describe('Sequence Routes', () => {
     });
 
     it('should update a sequence', async () => {
-      const response = await request(app)
-        .patch(`/api/sequences/${sequence._id}`)
-        .send({
-          name: 'Updated Name',
-          description: 'Updated description',
-        });
+      const response = await request(app).patch(`/api/sequences/${sequence._id}`).send({
+        name: 'Updated Name',
+        description: 'Updated description',
+      });
 
       expect(response.status).toBe(200);
       expect(response.body.data.name).toBe('Updated Name');
@@ -155,8 +149,7 @@ describe('Sequence Routes', () => {
     });
 
     it('should delete a sequence', async () => {
-      const response = await request(app)
-        .delete(`/api/sequences/${sequence._id}`);
+      const response = await request(app).delete(`/api/sequences/${sequence._id}`);
 
       expect(response.status).toBe(204);
 
@@ -166,10 +159,9 @@ describe('Sequence Routes', () => {
     });
 
     it('should return 404 for non-existent sequence', async () => {
-      const response = await request(app)
-        .delete(`/api/sequences/${new mongoose.Types.ObjectId()}`);
+      const response = await request(app).delete(`/api/sequences/${new mongoose.Types.ObjectId()}`);
 
       expect(response.status).toBe(404);
     });
   });
-}); 
+});

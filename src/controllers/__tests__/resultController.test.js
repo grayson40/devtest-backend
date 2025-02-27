@@ -161,7 +161,7 @@ describe('Result Controller', () => {
         expect.objectContaining({
           statusCode: 404,
           message: 'Test result not found',
-        })
+        }),
       );
     }, 15000);
   });
@@ -196,8 +196,8 @@ describe('Result Controller', () => {
         expect.objectContaining({
           statusCode: 404,
           message: 'Test result not found',
-        })
+        }),
       );
     }, 15000);
   });
-}); 
+});

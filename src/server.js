@@ -2,7 +2,8 @@ const app = require('./app');
 
 const PORT = process.env.PORT || 8000;
 
-const server = app.listen(PORT)
+const server = app
+  .listen(PORT)
   .on('error', (err) => {
     if (err.code === 'EADDRINUSE') {
       console.error(`Port ${PORT} is already in use. Please try these steps:
@@ -29,4 +30,4 @@ process.on('SIGTERM', () => {
   });
 });
 
-module.exports = server; 
+module.exports = server;

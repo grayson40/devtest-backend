@@ -12,9 +12,12 @@ beforeAll(async () => {
   // Modify the Atlas URI to use a test database
   const atlasUri = process.env.MONGODB_URI.replace('/?', '/test?');
   process.env.MONGODB_URI = atlasUri;
-  
+
   // Read example HTML
-  exampleHtml = await fs.readFile(path.join(__dirname, '../../../docs/example-scribe.html'), 'utf8');
+  exampleHtml = await fs.readFile(
+    path.join(__dirname, '../../../docs/example-scribe.html'),
+    'utf8',
+  );
 });
 
 describe('Test Routes', () => {
@@ -29,15 +32,13 @@ describe('Test Routes', () => {
 
   describe('POST /api/tests', () => {
     it('should create a new test case from HTML', async () => {
-      const response = await request(app)
-        .post('/api/tests')
-        .send({ html: exampleHtml });
-      
+      const response = await request(app).post('/api/tests').send({ html: exampleHtml });
+
       // Log response body if test fails
       if (response.status !== 201) {
         console.log('Response body:', response.body);
       }
-      
+
       expect(response.status).toBe(201);
       expect(response.body.status).toBe('success');
       expect(response.body.data.title).toBe('How To Log In To DAW Hub');
@@ -46,10 +47,7 @@ describe('Test Routes', () => {
     });
 
     it('should return 400 if HTML is missing', async () => {
-      const response = await request(app)
-        .post('/api/tests')
-        .send({})
-        .expect(400);
+      const response = await request(app).post('/api/tests').send({}).expect(400);
 
       expect(response.body.status).toBe('error');
       expect(response.body.errors).toBeDefined();
@@ -59,15 +57,11 @@ describe('Test Routes', () => {
   describe('GET /api/tests', () => {
     it('should return all test cases', async () => {
       // Create a test case first
-      const createResponse = await request(app)
-        .post('/api/tests')
-        .send({ html: exampleHtml });
+      const createResponse = await request(app).post('/api/tests').send({ html: exampleHtml });
 
       expect(createResponse.status).toBe(201);
 
-      const response = await request(app)
-        .get('/api/tests')
-        .expect(200);
+      const response = await request(app).get('/api/tests').expect(200);
 
       expect(response.body.status).toBe('success');
       expect(response.body.results).toBe(1);
@@ -79,16 +73,12 @@ describe('Test Routes', () => {
   describe('GET /api/tests/:id', () => {
     it('should return a single test case', async () => {
       // Create a test case first
-      const createResponse = await request(app)
-        .post('/api/tests')
-        .send({ html: exampleHtml });
+      const createResponse = await request(app).post('/api/tests').send({ html: exampleHtml });
 
       expect(createResponse.status).toBe(201);
       const testId = createResponse.body.data._id;
 
-      const response = await request(app)
-        .get(`/api/tests/${testId}`)
-        .expect(200);
+      const response = await request(app).get(`/api/tests/${testId}`).expect(200);
 
       expect(response.body.status).toBe('success');
       expect(response.body.data._id).toBe(testId);
@@ -96,18 +86,14 @@ describe('Test Routes', () => {
     });
 
     it('should return 404 for non-existent test case', async () => {
-      const response = await request(app)
-        .get('/api/tests/5f7d3a2b1c9d440000000000')
-        .expect(404);
+      const response = await request(app).get('/api/tests/5f7d3a2b1c9d440000000000').expect(404);
 
       expect(response.body.status).toBe('error');
       expect(response.body.message).toBe('Test case not found');
     });
 
     it('should return 400 for invalid test ID', async () => {
-      const response = await request(app)
-        .get('/api/tests/invalid-id')
-        .expect(400);
+      const response = await request(app).get('/api/tests/invalid-id').expect(400);
 
       expect(response.body.status).toBe('error');
       expect(response.body.message).toBe('Invalid test case ID');
@@ -117,9 +103,7 @@ describe('Test Routes', () => {
   describe('PATCH /api/tests/:id', () => {
     it('should update a test case', async () => {
       // Create a test case first
-      const createResponse = await request(app)
-        .post('/api/tests')
-        .send({ html: exampleHtml });
+      const createResponse = await request(app).post('/api/tests').send({ html: exampleHtml });
 
       expect(createResponse.status).toBe(201);
       const testId = createResponse.body.data._id;
@@ -137,24 +121,18 @@ describe('Test Routes', () => {
   describe('DELETE /api/tests/:id', () => {
     it('should delete a test case', async () => {
       // Create a test case first
-      const createResponse = await request(app)
-        .post('/api/tests')
-        .send({ html: exampleHtml });
+      const createResponse = await request(app).post('/api/tests').send({ html: exampleHtml });
 
       expect(createResponse.status).toBe(201);
       const testId = createResponse.body.data._id;
 
-      await request(app)
-        .delete(`/api/tests/${testId}`)
-        .expect(204);
+      await request(app).delete(`/api/tests/${testId}`).expect(204);
 
       // Verify the test case is deleted
-      const response = await request(app)
-        .get(`/api/tests/${testId}`)
-        .expect(404);
+      const response = await request(app).get(`/api/tests/${testId}`).expect(404);
 
       expect(response.body.status).toBe('error');
       expect(response.body.message).toBe('Test case not found');
     });
   });
-}); 
+});

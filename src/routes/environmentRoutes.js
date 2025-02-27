@@ -82,7 +82,7 @@ router.post(
     body('auth.type').optional().isIn(['none', 'basic', 'bearer', 'custom']),
     validate,
   ],
-  environmentController.createEnvironment
+  environmentController.createEnvironment,
 );
 
 /**
@@ -148,7 +148,7 @@ router.patch(
     body('auth.type').optional().isIn(['none', 'basic', 'bearer', 'custom']),
     validate,
   ],
-  environmentController.updateEnvironment
+  environmentController.updateEnvironment,
 );
 
 /**
@@ -169,4 +169,4 @@ router.patch(
  */
 router.delete('/:id', environmentController.deleteEnvironment);
 
-module.exports = router; 
+module.exports = router;

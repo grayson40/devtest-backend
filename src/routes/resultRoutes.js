@@ -110,7 +110,7 @@ router.post(
     body('metadata.browser').isIn(['chromium', 'firefox', 'webkit']).withMessage('Invalid browser'),
     validate,
   ],
-  resultController.createResult
+  resultController.createResult,
 );
 
 /**
@@ -169,7 +169,7 @@ router.get(
     query('limit').optional().isInt({ min: 1, max: 100 }),
     validate,
   ],
-  resultController.getAllResults
+  resultController.getAllResults,
 );
 
 /**
@@ -210,4 +210,4 @@ router.get('/:id', resultController.getResult);
  */
 router.delete('/:id', resultController.deleteResult);
 
-module.exports = router; 
+module.exports = router;

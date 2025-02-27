@@ -48,7 +48,7 @@ const testSequenceSchema = new mongoose.Schema(
     timestamps: true,
     toJSON: { virtuals: true },
     toObject: { virtuals: true },
-  }
+  },
 );
 
 // Index for faster queries

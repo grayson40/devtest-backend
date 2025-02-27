@@ -35,3 +35,5 @@ tmp/
 coverage/ 
 
 generated-tests/
+
+docs/

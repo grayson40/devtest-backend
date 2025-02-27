@@ -28,8 +28,7 @@ exports.createEnvironment = async (req, res, next) => {
  */
 exports.getAllEnvironments = async (req, res, next) => {
   try {
-    const environments = await Environment.find()
-      .sort('-createdAt');
+    const environments = await Environment.find().sort('-createdAt');
 
     res.status(200).json({
       status: 'success',
@@ -69,14 +68,10 @@ exports.getEnvironment = async (req, res, next) => {
  */
 exports.updateEnvironment = async (req, res, next) => {
   try {
-    const environment = await Environment.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      {
-        new: true,
-        runValidators: true,
-      }
-    );
+    const environment = await Environment.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+      runValidators: true,
+    });
 
     if (!environment) {
       throw new APIError('Environment not found', 404);
@@ -126,4 +121,4 @@ exports.deleteEnvironment = async (req, res, next) => {
     }
     next(error);
   }
-}; 
+};

@@ -70,4 +70,4 @@ describe('errorHandler middleware', () => {
       message: 'Bad request',
     });
   });
-}); 
+});

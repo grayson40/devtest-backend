@@ -34,41 +34,33 @@ describe('Environment Routes', () => {
     });
 
     it('should return 400 if name is missing', async () => {
-      const response = await request(app)
-        .post('/api/environments')
-        .send({
-          baseUrl: 'https://example.com',
-        });
+      const response = await request(app).post('/api/environments').send({
+        baseUrl: 'https://example.com',
+      });
 
       expect(response.status).toBe(400);
     });
 
     it('should return 400 if baseUrl is missing', async () => {
-      const response = await request(app)
-        .post('/api/environments')
-        .send({
-          name: 'Production',
-        });
+      const response = await request(app).post('/api/environments').send({
+        name: 'Production',
+      });
 
       expect(response.status).toBe(400);
     });
 
     it('should prevent duplicate environment names', async () => {
       // Create first environment
-      await request(app)
-        .post('/api/environments')
-        .send({
-          name: 'Production',
-          baseUrl: 'https://example.com',
-        });
+      await request(app).post('/api/environments').send({
+        name: 'Production',
+        baseUrl: 'https://example.com',
+      });
 
       // Try to create another with same name
-      const response = await request(app)
-        .post('/api/environments')
-        .send({
-          name: 'Production',
-          baseUrl: 'https://other.com',
-        });
+      const response = await request(app).post('/api/environments').send({
+        name: 'Production',
+        baseUrl: 'https://other.com',
+      });
 
       expect(response.status).toBe(400);
       expect(response.body.message).toContain('already exists');
@@ -90,8 +82,7 @@ describe('Environment Routes', () => {
     });
 
     it('should return all environments', async () => {
-      const response = await request(app)
-        .get('/api/environments');
+      const response = await request(app).get('/api/environments');
 
       expect(response.status).toBe(200);
       expect(response.body.status).toBe('success');
@@ -112,8 +103,7 @@ describe('Environment Routes', () => {
     });
 
     it('should return an environment by ID', async () => {
-      const response = await request(app)
-        .get(`/api/environments/${environment._id}`);
+      const response = await request(app).get(`/api/environments/${environment._id}`);
 
       expect(response.status).toBe(200);
       expect(response.body.status).toBe('success');
@@ -122,8 +112,7 @@ describe('Environment Routes', () => {
     });
 
     it('should return 404 for non-existent environment', async () => {
-      const response = await request(app)
-        .get(`/api/environments/${new mongoose.Types.ObjectId()}`);
+      const response = await request(app).get(`/api/environments/${new mongoose.Types.ObjectId()}`);
 
       expect(response.status).toBe(404);
     });
@@ -140,12 +129,10 @@ describe('Environment Routes', () => {
     });
 
     it('should update an environment', async () => {
-      const response = await request(app)
-        .patch(`/api/environments/${environment._id}`)
-        .send({
-          name: 'Updated Production',
-          description: 'Updated description',
-        });
+      const response = await request(app).patch(`/api/environments/${environment._id}`).send({
+        name: 'Updated Production',
+        description: 'Updated description',
+      });
 
       expect(response.status).toBe(200);
       expect(response.body.data.name).toBe('Updated Production');
@@ -160,11 +147,9 @@ describe('Environment Routes', () => {
       });
 
       // Try to update to existing name
-      const response = await request(app)
-        .patch(`/api/environments/${environment._id}`)
-        .send({
-          name: 'Staging',
-        });
+      const response = await request(app).patch(`/api/environments/${environment._id}`).send({
+        name: 'Staging',
+      });
 
       expect(response.status).toBe(400);
       expect(response.body.message).toContain('already exists');
@@ -182,8 +167,7 @@ describe('Environment Routes', () => {
     });
 
     it('should delete an environment', async () => {
-      const response = await request(app)
-        .delete(`/api/environments/${environment._id}`);
+      const response = await request(app).delete(`/api/environments/${environment._id}`);
 
       expect(response.status).toBe(204);
 
@@ -193,10 +177,11 @@ describe('Environment Routes', () => {
     });
 
     it('should return 404 for non-existent environment', async () => {
-      const response = await request(app)
-        .delete(`/api/environments/${new mongoose.Types.ObjectId()}`);
+      const response = await request(app).delete(
+        `/api/environments/${new mongoose.Types.ObjectId()}`,
+      );
 
       expect(response.status).toBe(404);
     });
   });
-}); 
+});

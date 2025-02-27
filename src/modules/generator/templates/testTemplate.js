@@ -34,26 +34,26 @@ function generateStepAction(step) {
   switch (step.action) {
     case 'goto':
       return `  await page.goto('${escapeString(step.value)}');`;
-    
+
     case 'click':
       return `  await page.click('${escapeString(step.selector)}');`;
-    
+
     case 'fill':
       return `  await page.fill('${escapeString(step.selector)}', '${escapeString(step.value)}');`;
-    
+
     case 'wait':
       return `  await page.waitForTimeout(${parseInt(step.value) || 1000});`;
-    
+
     case 'assert':
       if (step.value && step.selector) {
         return `  await expect(page.locator('${escapeString(step.selector)}')).toHaveText('${escapeString(step.value)}');`;
       }
       return `  await expect(page.locator('${escapeString(step.selector)}')).toBeVisible();`;
-    
+
     case 'view':
       // For view actions, we'll add a wait for visibility
       return `  await expect(page.getByText('${escapeString(step.value)}')).toBeVisible();`;
-    
+
     default:
       return `  // Unsupported action: ${step.action}`;
   }
@@ -75,10 +75,7 @@ function generateScreenshotCapture(stepNumber) {
  */
 function escapeString(str) {
   if (!str) return '';
-  return str
-    .replace(/\\/g, '\\\\')
-    .replace(/'/g, "\\'")
-    .replace(/\n/g, '\\n');
+  return str.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\n/g, '\\n');
 }
 
 module.exports = {
@@ -87,4 +84,4 @@ module.exports = {
   generateStepAction,
   generateScreenshotCapture,
   escapeString,
-}; 
+};

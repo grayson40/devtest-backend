@@ -48,21 +48,14 @@ describe('Upload Controller', () => {
 
     await uploadController.uploadScribeHtml(mockRequest, mockResponse, nextFunction);
 
-    expect(fs.readFile).toHaveBeenCalledWith(
-      mockRequest.file.path,
-      'utf8',
-      expect.any(Function)
-    );
+    expect(fs.readFile).toHaveBeenCalledWith(mockRequest.file.path, 'utf8', expect.any(Function));
     expect(parseHtml).toHaveBeenCalledWith(mockFileContent);
     expect(mockResponse.status).toHaveBeenCalledWith(200);
     expect(mockResponse.json).toHaveBeenCalledWith({
       status: 'success',
       data: mockParsedData,
     });
-    expect(fs.unlink).toHaveBeenCalledWith(
-      mockRequest.file.path,
-      expect.any(Function)
-    );
+    expect(fs.unlink).toHaveBeenCalledWith(mockRequest.file.path, expect.any(Function));
   });
 
   it('should handle missing file error', async () => {
@@ -74,7 +67,7 @@ describe('Upload Controller', () => {
       expect.objectContaining({
         statusCode: 400,
         message: 'No file uploaded',
-      })
+      }),
     );
   });
 
@@ -87,10 +80,7 @@ describe('Upload Controller', () => {
     await uploadController.uploadScribeHtml(mockRequest, mockResponse, nextFunction);
 
     expect(nextFunction).toHaveBeenCalledWith(readError);
-    expect(fs.unlink).toHaveBeenCalledWith(
-      mockRequest.file.path,
-      expect.any(Function)
-    );
+    expect(fs.unlink).toHaveBeenCalledWith(mockRequest.file.path, expect.any(Function));
   });
 
   it('should handle HTML parsing error', async () => {
@@ -103,10 +93,7 @@ describe('Upload Controller', () => {
     await uploadController.uploadScribeHtml(mockRequest, mockResponse, nextFunction);
 
     expect(nextFunction).toHaveBeenCalledWith(parseError);
-    expect(fs.unlink).toHaveBeenCalledWith(
-      mockRequest.file.path,
-      expect.any(Function)
-    );
+    expect(fs.unlink).toHaveBeenCalledWith(mockRequest.file.path, expect.any(Function));
   });
 
   it('should handle file cleanup error gracefully', async () => {
@@ -138,12 +125,9 @@ describe('Upload Controller', () => {
     });
 
     // Wait for the cleanup error to be processed
-    await new Promise(resolve => setImmediate(resolve));
-    
-    expect(fs.unlink).toHaveBeenCalledWith(
-      mockRequest.file.path,
-      expect.any(Function)
-    );
+    await new Promise((resolve) => setImmediate(resolve));
+
+    expect(fs.unlink).toHaveBeenCalledWith(mockRequest.file.path, expect.any(Function));
     expect(nextFunction).toHaveBeenCalledWith(cleanupError);
   });
-}); 
+});

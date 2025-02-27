@@ -22,22 +22,22 @@ class PlaywrightGenerator {
 
       // Write the test file
       await fs.writeFile(filePath, testContent, 'utf8');
-      
+
       // Update test case with generated file path
       await TestCase.findByIdAndUpdate(testCase._id, {
-        playwrightTestPath: filePath
+        playwrightTestPath: filePath,
       });
 
       logger.info(`Generated Playwright test at ${filePath}`, {
         testId: testCase._id,
-        filePath
+        filePath,
       });
 
       return filePath;
     } catch (error) {
       logger.error('Error generating Playwright test', {
         testId: testCase._id,
-        error: error.stack
+        error: error.stack,
       });
       throw error;
     }
@@ -45,7 +45,7 @@ class PlaywrightGenerator {
 
   generateTestContent(testCase) {
     const steps = this.generateSteps(testCase.steps);
-    
+
     return `const { test, expect } = require('@playwright/test');
 
 test('${testCase.title}', async ({ page }) => {
@@ -62,37 +62,39 @@ ${steps}
       return '  // No steps provided';
     }
 
-    return steps.map(step => {
-      try {
-        switch (step.action.toLowerCase()) {
-          case 'click':
-            return `  await page.click('${step.selector}'); // ${step.description}`;
-          case 'fill':
-          case 'type':
-            return `  await page.fill('${step.selector}', '${step.value}'); // ${step.description}`;
-          case 'goto':
-          case 'navigate':
-            return `  await page.goto('${step.value}'); // ${step.description}`;
-          case 'wait':
-            return `  await page.waitForSelector('${step.selector}'); // ${step.description}`;
-          case 'assert':
-            return this.generateAssertion(step);
-          case 'view':
-            return `  // Viewport action: ${step.description}`;
-          default:
-            return `  // Unsupported action: ${step.action} - ${step.description}`;
+    return steps
+      .map((step) => {
+        try {
+          switch (step.action.toLowerCase()) {
+            case 'click':
+              return `  await page.click('${step.selector}'); // ${step.description}`;
+            case 'fill':
+            case 'type':
+              return `  await page.fill('${step.selector}', '${step.value}'); // ${step.description}`;
+            case 'goto':
+            case 'navigate':
+              return `  await page.goto('${step.value}'); // ${step.description}`;
+            case 'wait':
+              return `  await page.waitForSelector('${step.selector}'); // ${step.description}`;
+            case 'assert':
+              return this.generateAssertion(step);
+            case 'view':
+              return `  // Viewport action: ${step.description}`;
+            default:
+              return `  // Unsupported action: ${step.action} - ${step.description}`;
+          }
+        } catch (error) {
+          logger.error('Error generating step', { step, error: error.message });
+          return `  // Error generating step: ${error.message}`;
         }
-      } catch (error) {
-        logger.error('Error generating step', { step, error: error.message });
-        return `  // Error generating step: ${error.message}`;
-      }
-    }).join('\n');
+      })
+      .join('\n');
   }
 
   generateAssertion(step) {
     const selector = step.selector || '';
     const value = step.value || '';
-    
+
     if (!selector) {
       return `  // Missing selector for assertion: ${step.description}`;
     }
@@ -101,4 +103,4 @@ ${steps}
   }
 }
 
-module.exports = new PlaywrightGenerator(); 
+module.exports = new PlaywrightGenerator();

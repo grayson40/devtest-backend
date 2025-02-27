@@ -71,9 +71,18 @@ const createTestValidation = [
 const updateTestValidation = [
   body('title').optional().trim().notEmpty().withMessage('Title cannot be empty'),
   body('steps').optional().isArray().withMessage('Steps must be an array'),
-  body('steps.*.number').optional().isInt({ min: 1 }).withMessage('Step number must be a positive integer'),
-  body('steps.*.description').optional().trim().notEmpty().withMessage('Step description is required'),
-  body('steps.*.action').optional().isIn(['goto', 'click', 'fill', 'upload', 'wait', 'assert', 'view', 'unknown'])
+  body('steps.*.number')
+    .optional()
+    .isInt({ min: 1 })
+    .withMessage('Step number must be a positive integer'),
+  body('steps.*.description')
+    .optional()
+    .trim()
+    .notEmpty()
+    .withMessage('Step description is required'),
+  body('steps.*.action')
+    .optional()
+    .isIn(['goto', 'click', 'fill', 'upload', 'wait', 'assert', 'view', 'unknown'])
     .withMessage('Invalid action type'),
   validate,
 ];
@@ -133,9 +142,7 @@ const updateTestValidation = [
  *                   items:
  *                     $ref: '#/components/schemas/TestCase'
  */
-router.route('/')
-  .post(createTestValidation, createTest)
-  .get(getAllTests);
+router.route('/').post(createTestValidation, createTest).get(getAllTests);
 
 /**
  * @swagger
@@ -212,9 +219,6 @@ router.route('/')
  *       404:
  *         description: Test case not found
  */
-router.route('/:id')
-  .get(getTest)
-  .patch(updateTestValidation, updateTest)
-  .delete(deleteTest);
+router.route('/:id').get(getTest).patch(updateTestValidation, updateTest).delete(deleteTest);
 
-module.exports = router; 
+module.exports = router;
