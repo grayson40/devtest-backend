@@ -6,6 +6,8 @@ const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('./config/swagger');
 require('dotenv').config();
 const requestLogger = require('./middleware/requestLogger');
+const ticketRoutes = require('./routes/ticketRoutes');
+const authRoutes = require('./routes/authRoutes');
 
 const app = express();
 
@@ -43,6 +45,8 @@ app.use('/api/sequences', sequenceRoutes);
 app.use('/api/environments', environmentRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/results', resultRoutes);
+app.use('/api/tickets', ticketRoutes);
+app.use('/api/auth', authRoutes);
 
 // 404 handler
 app.use((req, res) => {
