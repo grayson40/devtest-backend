@@ -2,6 +2,7 @@ const { TestCase } = require('../models');
 const { APIError } = require('../middleware/errorHandler');
 const ScribeParser = require('../modules/parser/scribeParser');
 const playwrightGenerator = require('../modules/generator/playwrightGenerator');
+const practiTestGenerator = require('../modules/generator/practiTestGenerator');
 const logger = require('../utils/logger');
 
 /**
@@ -39,9 +40,10 @@ exports.createTest = async (req, res, next) => {
       status: 'draft',
     });
 
-    // Generate Playwright test synchronously to ensure it's created
+    // Generate Playwright test
+    let testPath;
     try {
-      const testPath = await playwrightGenerator.generateTest(testCase);
+      testPath = await playwrightGenerator.generateTest(testCase);
       logger.info('Successfully generated Playwright test', {
         testId: testCase._id,
         path: testPath,
@@ -53,9 +55,33 @@ exports.createTest = async (req, res, next) => {
       });
     }
 
+    // Generate PractiTest export
+    let practiTestPath;
+    try {
+      practiTestPath = await practiTestGenerator.generateExport(testCase);
+      logger.info('Successfully generated PractiTest export', {
+        testId: testCase._id,
+        path: practiTestPath,
+      });
+      
+      // Update test case with PractiTest export path
+      await TestCase.findByIdAndUpdate(testCase._id, {
+        practiTestExportPath: practiTestPath
+      });
+    } catch (exportError) {
+      logger.error('Failed to generate PractiTest export', {
+        testId: testCase._id,
+        error: exportError.message,
+      });
+    }
+
     res.status(201).json({
       status: 'success',
-      data: testCase,
+      data: {
+        ...testCase.toObject(),
+        playwrightTestPath: testPath,
+        practiTestExportPath: practiTestPath
+      },
     });
   } catch (error) {
     if (error.name === 'ValidationError') {
@@ -155,6 +181,55 @@ exports.deleteTest = async (req, res, next) => {
     if (error.name === 'CastError') {
       return next(new APIError('Invalid test case ID', 400));
     }
+    next(error);
+  }
+};
+
+/**
+ * Export a test case to PractiTest format
+ */
+exports.exportToPractiTest = async (req, res, next) => {
+  try {
+    const test = await TestCase.findById(req.params.id);
+    if (!test) {
+      throw new APIError('Test case not found', 404);
+    }
+
+    const exportPath = await practiTestGenerator.generateExport(test);
+    
+    // Update test case with export path
+    await TestCase.findByIdAndUpdate(test._id, {
+      practiTestExportPath: exportPath
+    });
+
+    res.status(200).json({
+      status: 'success',
+      data: {
+        exportPath,
+        downloadUrl: `/api/tests/${test._id}/download-export`
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Download PractiTest export file
+ */
+exports.downloadPractiTestExport = async (req, res, next) => {
+  try {
+    const test = await TestCase.findById(req.params.id);
+    if (!test) {
+      throw new APIError('Test case not found', 404);
+    }
+
+    if (!test.practiTestExportPath) {
+      throw new APIError('No PractiTest export found for this test case', 404);
+    }
+
+    res.download(test.practiTestExportPath);
+  } catch (error) {
     next(error);
   }
 };

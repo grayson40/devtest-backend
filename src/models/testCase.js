@@ -53,6 +53,10 @@ const testCaseSchema = new mongoose.Schema({
     type: String,
     default: null,
   },
+  practiTestExportPath: {
+    type: String,
+    default: null,
+  },
   tickets: [
     {
       type: mongoose.Schema.Types.ObjectId,

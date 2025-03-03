@@ -7,6 +7,8 @@ const {
   getTest,
   updateTest,
   deleteTest,
+  exportToPractiTest,
+  downloadPractiTestExport,
 } = require('../controllers/testController');
 
 const router = express.Router();
@@ -220,5 +222,48 @@ router.route('/').post(createTestValidation, createTest).get(getAllTests);
  *         description: Test case not found
  */
 router.route('/:id').get(getTest).patch(updateTestValidation, updateTest).delete(deleteTest);
+
+/**
+ * @swagger
+ * /api/tests/{id}/export-practitest:
+ *   post:
+ *     tags: [Tests]
+ *     summary: Export test to PractiTest format
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Test ID
+ *     responses:
+ *       200:
+ *         description: Test exported successfully
+ */
+router.post('/:id/export-practitest', exportToPractiTest);
+
+/**
+ * @swagger
+ * /api/tests/{id}/download-export:
+ *   get:
+ *     tags: [Tests]
+ *     summary: Download PractiTest export file
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Test ID
+ *     responses:
+ *       200:
+ *         description: File download
+ *         content:
+ *           application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+ *             schema:
+ *               type: string
+ *               format: binary
+ */
+router.get('/:id/download-export', downloadPractiTestExport);
 
 module.exports = router;
