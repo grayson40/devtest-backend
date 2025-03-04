@@ -4,6 +4,7 @@ const ScribeParser = require('../modules/parser/scribeParser');
 const playwrightGenerator = require('../modules/generator/playwrightGenerator');
 const practiTestGenerator = require('../modules/generator/practiTestGenerator');
 const logger = require('../utils/logger');
+const fs = require('fs').promises;
 
 /**
  * Create a new test case from Scribe HTML
@@ -30,6 +31,7 @@ exports.createTest = async (req, res, next) => {
       selector: step.selector || '',
       value: step.value || '',
       description: step.description,
+      screenshotUrl: step.screenshotUrl || '',
     }));
 
     // Create test case
@@ -40,50 +42,47 @@ exports.createTest = async (req, res, next) => {
       status: 'draft',
     });
 
-    // Generate Playwright test
-    let testPath;
-    try {
-      testPath = await playwrightGenerator.generateTest(testCase);
+    // Generate files in parallel
+    const [testPath, practiTestPath] = await Promise.allSettled([
+      playwrightGenerator.generateTest(testCase),
+      practiTestGenerator.generateExport(testCase)
+    ]);
+
+    // Update test case with file paths
+    const updates = {};
+    if (testPath.status === 'fulfilled') {
+      updates.playwrightTestPath = testPath.value;
       logger.info('Successfully generated Playwright test', {
         testId: testCase._id,
-        path: testPath,
-      });
-    } catch (genError) {
-      logger.error('Failed to generate Playwright test', {
-        testId: testCase._id,
-        error: genError.message,
+        path: testPath.value
       });
     }
 
-    // Generate PractiTest export
-    let practiTestPath;
-    try {
-      practiTestPath = await practiTestGenerator.generateExport(testCase);
+    if (practiTestPath.status === 'fulfilled') {
+      updates.practiTestExportPath = practiTestPath.value;
       logger.info('Successfully generated PractiTest export', {
         testId: testCase._id,
-        path: practiTestPath,
+        path: practiTestPath.value
       });
-      
-      // Update test case with PractiTest export path
-      await TestCase.findByIdAndUpdate(testCase._id, {
-        practiTestExportPath: practiTestPath
-      });
-    } catch (exportError) {
-      logger.error('Failed to generate PractiTest export', {
-        testId: testCase._id,
-        error: exportError.message,
-      });
+    }
+
+    // Update test case with file paths if any were generated
+    if (Object.keys(updates).length > 0) {
+      await TestCase.findByIdAndUpdate(testCase._id, updates);
     }
 
     res.status(201).json({
       status: 'success',
       data: {
         ...testCase.toObject(),
-        playwrightTestPath: testPath,
-        practiTestExportPath: practiTestPath
+        playwrightTestPath: testPath.status === 'fulfilled' ? testPath.value : null,
+        practiTestExportPath: practiTestPath.status === 'fulfilled' ? practiTestPath.value : null
       },
     });
   } catch (error) {
+    logger.error('Error in createTest', {
+      error: error.stack
+    });
     if (error.name === 'ValidationError') {
       return next(new APIError(error.message, 400));
     }
@@ -195,21 +194,29 @@ exports.exportToPractiTest = async (req, res, next) => {
       throw new APIError('Test case not found', 404);
     }
 
+    // Generate or regenerate the export
     const exportPath = await practiTestGenerator.generateExport(test);
     
     // Update test case with export path
-    await TestCase.findByIdAndUpdate(test._id, {
-      practiTestExportPath: exportPath
-    });
+    const updatedTest = await TestCase.findByIdAndUpdate(
+      test._id, 
+      { practiTestExportPath: exportPath },
+      { new: true }
+    );
 
     res.status(200).json({
       status: 'success',
       data: {
         exportPath,
-        downloadUrl: `/api/tests/${test._id}/download-export`
+        downloadUrl: `/api/tests/${test._id}/download-export`,
+        test: updatedTest
       }
     });
   } catch (error) {
+    logger.error('Error exporting to PractiTest', {
+      testId: req.params.id,
+      error: error.message
+    });
     next(error);
   }
 };
@@ -225,10 +232,72 @@ exports.downloadPractiTestExport = async (req, res, next) => {
     }
 
     if (!test.practiTestExportPath) {
-      throw new APIError('No PractiTest export found for this test case', 404);
+      // If no export exists, generate one on the fly
+      try {
+        const exportPath = await practiTestGenerator.generateExport(test);
+        
+        // Update test case with export path
+        await TestCase.findByIdAndUpdate(test._id, {
+          practiTestExportPath: exportPath
+        });
+        
+        return res.download(exportPath);
+      } catch (genError) {
+        throw new APIError('Failed to generate PractiTest export', 500);
+      }
+    }
+
+    // Check if file exists
+    try {
+      await fs.access(test.practiTestExportPath);
+    } catch (error) {
+      // If file doesn't exist, regenerate it
+      try {
+        const exportPath = await practiTestGenerator.generateExport(test);
+        
+        // Update test case with export path
+        await TestCase.findByIdAndUpdate(test._id, {
+          practiTestExportPath: exportPath
+        });
+        
+        return res.download(exportPath);
+      } catch (genError) {
+        throw new APIError('Failed to regenerate PractiTest export', 500);
+      }
     }
 
     res.download(test.practiTestExportPath);
+  } catch (error) {
+    logger.error('Error downloading PractiTest export', {
+      testId: req.params.id,
+      error: error.message
+    });
+    next(error);
+  }
+};
+
+/**
+ * Download Playwright test file
+ */
+exports.downloadPlaywrightTest = async (req, res, next) => {
+  try {
+    const test = await TestCase.findById(req.params.id);
+    if (!test) {
+      throw new APIError('Test case not found', 404);
+    }
+
+    if (!test.playwrightTestPath) {
+      throw new APIError('No Playwright test found for this test case', 404);
+    }
+
+    // Check if file exists
+    try {
+      await fs.access(test.playwrightTestPath);
+    } catch (error) {
+      throw new APIError('Playwright test file not found on disk', 404);
+    }
+
+    res.download(test.playwrightTestPath);
   } catch (error) {
     next(error);
   }

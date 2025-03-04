@@ -2,22 +2,52 @@ const ExcelJS = require('exceljs');
 const path = require('path');
 const fs = require('fs').promises;
 const logger = require('../../utils/logger');
+const Anthropic = require('@anthropic-ai/sdk');
 
 class PractiTestGenerator {
   constructor() {
     this.exportsDir = path.join(process.cwd(), 'exports', 'practitest');
+    this.anthropic = new Anthropic({
+      apiKey: process.env.ANTHROPIC_API_KEY,
+    });
   }
 
-  /**
-   * Generate a PractiTest compatible Excel file from a test case
-   * @param {Object} testCase - The test case object
-   * @returns {Promise<string>} - Path to the generated Excel file
-   */
   async generateExport(testCase) {
     try {
       // Ensure exports directory exists
       await fs.mkdir(this.exportsDir, { recursive: true });
 
+      // Create initial export
+      const filePath = await this.createInitialExport(testCase);
+      
+      // Start background enhancement
+      setImmediate(async () => {
+        try {
+          await this.enhanceExportInBackground(testCase, filePath);
+          logger.info('Background enhancement completed successfully', {
+            testId: testCase._id,
+            filePath
+          });
+        } catch (error) {
+          logger.error('Background enhancement failed', {
+            testId: testCase._id,
+            error: error.message
+          });
+        }
+      });
+
+      return filePath;
+    } catch (error) {
+      logger.error('Error in generateExport', {
+        testId: testCase._id,
+        error: error.stack
+      });
+      throw error;
+    }
+  }
+
+  async createInitialExport(testCase) {
+    try {
       const workbook = new ExcelJS.Workbook();
       const worksheet = workbook.addWorksheet('Test Case');
 
@@ -31,7 +61,7 @@ class PractiTestGenerator {
         { header: 'Expected Result', key: 'expectedResult', width: 40 }
       ];
 
-      // Style the header row
+      // Style headers
       worksheet.getRow(1).font = { bold: true };
       worksheet.getRow(1).fill = {
         type: 'pattern',
@@ -39,119 +69,151 @@ class PractiTestGenerator {
         fgColor: { argb: 'FFE0E0E0' }
       };
 
-      // Add test case info
-      const testInfo = {
+      // Add test info
+      worksheet.addRow({
         testName: testCase.title,
         description: testCase.description || '',
-        stepNumber: '',
-        stepTitle: '',
-        stepDescription: '',
-        expectedResult: ''
-      };
-      worksheet.addRow(testInfo);
+      });
 
-      // Merge cells for test name and description
-      worksheet.mergeCells('A2:A3');
-      worksheet.mergeCells('B2:B3');
-
-      // Add steps
-      let rowIndex = 2;
-      testCase.steps.forEach((step, index) => {
-        const stepRow = {
+      // Add steps with basic content initially
+      testCase.steps.forEach(step => {
+        worksheet.addRow({
           stepNumber: step.number,
           stepTitle: this.generateStepTitle(step),
           stepDescription: step.description,
-          expectedResult: this.generateExpectedResult(step)
-        };
-        worksheet.addRow(stepRow);
-        rowIndex++;
+          expectedResult: this.generateBasicExpectedResult(step)
+        });
       });
 
-      // Apply borders
-      for (let i = 1; i <= rowIndex; i++) {
-        worksheet.getRow(i).eachCell({ includeEmpty: true }, (cell) => {
-          cell.border = {
-            top: { style: 'thin' },
-            left: { style: 'thin' },
-            bottom: { style: 'thin' },
-            right: { style: 'thin' }
-          };
-        });
-      }
+      // Apply styling
+      this.applyWorksheetStyling(worksheet);
 
-      // Generate filename
+      // Save file
       const sanitizedTitle = testCase.title.toLowerCase().replace(/[^a-z0-9]+/g, '_');
       const filename = `practitest_${sanitizedTitle}_${testCase._id}.xlsx`;
       const filePath = path.join(this.exportsDir, filename);
 
-      // Write to file
       await workbook.xlsx.writeFile(filePath);
-
-      logger.info(`Generated PractiTest export at ${filePath}`, {
-        testId: testCase._id,
-        filePath
-      });
-
+      logger.info('Created initial PractiTest export', { filePath });
+      
       return filePath;
     } catch (error) {
-      logger.error('Error generating PractiTest export', {
+      logger.error('Error creating initial export', { error: error.stack });
+      throw error;
+    }
+  }
+
+  async enhanceExportInBackground(testCase, filePath) {
+    try {
+      logger.info('Starting AI enhancement', { testId: testCase._id });
+
+      const prompt = `As a QA expert, enhance these test steps with clear descriptions and expected results.
+      Consider the UI context and user flow.
+
+      Test Title: ${testCase.title}
+      Test Description: ${testCase.description}
+
+      Steps to enhance: ${JSON.stringify(testCase.steps.map(step => ({
+        number: step.number,
+        action: step.action,
+        selector: step.selector,
+        value: step.value,
+        description: step.description
+      })), null, 2)}
+
+      For each step provide:
+      1. A clear step description (2-3 bullet points)
+      2. Specific expected results that verify:
+         - UI response
+         - System state
+         - Data changes
+      
+      Format as JSON array:
+      [{ 
+        "number": 1,
+        "description": "• Point 1\\n• Point 2",
+        "expectedResult": "• Result 1\\n• Result 2"
+      }]`;
+
+      const message = await this.anthropic.messages.create({
+        model: "claude-3-sonnet-20240229",
+        max_tokens: 4000,
+        temperature: 0.7,
+        messages: [{ role: "user", content: prompt }]
+      });
+
+      const enhancedSteps = JSON.parse(message.content[0].text);
+      
+      // Update Excel with enhanced content
+      const workbook = new ExcelJS.Workbook();
+      await workbook.xlsx.readFile(filePath);
+      const worksheet = workbook.getWorksheet('Test Case');
+
+      enhancedSteps.forEach((step, index) => {
+        const rowIndex = index + 2; // +2 to skip header and test info
+        if (step.description) {
+          worksheet.getRow(rowIndex).getCell('E').value = step.description;
+        }
+        if (step.expectedResult) {
+          worksheet.getRow(rowIndex).getCell('F').value = step.expectedResult;
+        }
+      });
+
+      await workbook.xlsx.writeFile(filePath);
+      logger.info('Enhanced PractiTest export saved', { 
         testId: testCase._id,
-        error: error.stack
+        filePath 
+      });
+    } catch (error) {
+      logger.error('AI enhancement failed', { 
+        testId: testCase._id,
+        error: error.message,
+        stack: error.stack
       });
       throw error;
     }
   }
 
-  /**
-   * Generate a step title based on the step action
-   * @param {Object} step - The step object
-   * @returns {string} - The step title
-   */
   generateStepTitle(step) {
+    const action = step.action.toLowerCase();
+    const target = step.selector || step.value || 'element';
+    return `${action} ${target}`;
+  }
+
+  generateBasicExpectedResult(step) {
     switch (step.action.toLowerCase()) {
       case 'click':
-        return `Click on element`;
+        return '• Element clicked\n• Action successful';
       case 'fill':
       case 'type':
-        return `Enter text`;
+        return `• "${step.value}" entered\n• Field updated`;
       case 'goto':
       case 'navigate':
-        return `Navigate to URL`;
+        return `• Page loaded\n• URL: ${step.value}`;
       case 'wait':
-        return `Wait for element`;
+        return '• Element visible\n• Ready for interaction';
       case 'assert':
-        return `Verify element`;
-      case 'view':
-        return `View page`;
+        return '• Element present\n• State verified';
       default:
-        return `Perform action: ${step.action}`;
+        return '• Action completed';
     }
   }
 
-  /**
-   * Generate expected result based on the step action
-   * @param {Object} step - The step object
-   * @returns {string} - The expected result
-   */
-  generateExpectedResult(step) {
-    switch (step.action.toLowerCase()) {
-      case 'click':
-        return `Element is clicked successfully`;
-      case 'fill':
-      case 'type':
-        return `Text "${step.value}" is entered successfully`;
-      case 'goto':
-      case 'navigate':
-        return `Page is loaded successfully`;
-      case 'wait':
-        return `Element is visible on the page`;
-      case 'assert':
-        return `Element is visible and matches expected state`;
-      case 'view':
-        return `Page is displayed correctly`;
-      default:
-        return `Action completes successfully`;
-    }
+  applyWorksheetStyling(worksheet) {
+    worksheet.eachRow((row) => {
+      row.eachCell((cell) => {
+        cell.border = {
+          top: { style: 'thin' },
+          left: { style: 'thin' },
+          bottom: { style: 'thin' },
+          right: { style: 'thin' }
+        };
+        cell.alignment = {
+          wrapText: true,
+          vertical: 'top'
+        };
+      });
+    });
   }
 }
 

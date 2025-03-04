@@ -9,6 +9,7 @@ const {
   deleteTest,
   exportToPractiTest,
   downloadPractiTestExport,
+  downloadPlaywrightTest,
 } = require('../controllers/testController');
 
 const router = express.Router();
@@ -265,5 +266,29 @@ router.post('/:id/export-practitest', exportToPractiTest);
  *               format: binary
  */
 router.get('/:id/download-export', downloadPractiTestExport);
+
+/**
+ * @swagger
+ * /api/tests/{id}/download-playwright:
+ *   get:
+ *     tags: [Tests]
+ *     summary: Download Playwright test file
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Test ID
+ *     responses:
+ *       200:
+ *         description: File download
+ *         content:
+ *           text/javascript:
+ *             schema:
+ *               type: string
+ *               format: binary
+ */
+router.get('/:id/download-playwright', downloadPlaywrightTest);
 
 module.exports = router;
